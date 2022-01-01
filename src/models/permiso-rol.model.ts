@@ -9,6 +9,15 @@ export class PermisoRol extends Entity {
   })
   _id?: string;
 
+  @property({
+    type: 'string',
+  })
+  id_rol?: string;
+
+  @property({
+    type: 'string',
+  })
+  id_permiso?: string;
 
   constructor(data?: Partial<PermisoRol>) {
     super(data);
