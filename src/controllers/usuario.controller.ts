@@ -1,3 +1,5 @@
+import { Usuario } from './../models/usuario.model';
+import { CambioClave } from './../models/cambio-clave.model';
 import { Credenciales } from './../models/credenciales.model';
 import { AdministradorClavesService } from './../services/administrador-claves.service';
 import {service} from '@loopback/core';
@@ -20,7 +22,7 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Usuario} from '../models';
+import {CredencialesRecuperarClave} from '../models';
 import {UsuarioRepository} from '../repositories';
 
 export class UsuarioController {
@@ -50,7 +52,7 @@ export class UsuarioController {
     usuario: Omit<Usuario, '_id'>,
   ): Promise<Usuario> {
 
-    let clave = this.servicioClaves.CrearClavesAleatorias();
+    let clave = this.servicioClaves.CrearClaveAleatoria();
     console.log(clave)
     let claveCifrada = this.servicioClaves.CifrarTexto( clave );
     usuario.clave = claveCifrada;
@@ -192,4 +194,55 @@ export class UsuarioController {
     }
     return usuario
   }
+
+  @post('/cambia-clave')
+  @response(200, {
+    description: 'Cambio de la clave de usuario',
+    content: {'application/json': {schema: getModelSchemaRef(CambioClave)}},
+  })
+  async cambiarClave(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(CambioClave, {
+          title : 'Cambiar Clave de Usuario'
+          }),
+        },
+      },
+    })
+    credencialesClave: CambioClave,
+  ): Promise<Boolean> {
+    let respuesta = await this.servicioClaves.CambiarClave(credencialesClave);
+    if(respuesta) {
+      //Invocar al servicio de notificaciones para enviar correo al usuario
+    }
+    return false;
+  }
+
+
+  @post('/recuperar-clave')
+  @response(200, {
+    description: 'Recuperar la clave de usuario',
+    content: {'application/json': {schema: {} } },
+  })
+  async recuperarClave(
+    @requestBody({
+      content: {
+        'application/json': {
+        },
+      },
+    })
+    credenciales: CredencialesRecuperarClave,
+    ): Promise<Usuario | null> {
+      let usuario = await this.usuarioRepository.findOne({
+        where: {
+          correo: credenciales.correo
+        }
+      });
+    if(usuario) {
+      //Invocar al servicio de notificaciones para enviar correo al usuario
+    }
+    return usuario;
+  }
+
 }
